@@ -12,6 +12,15 @@ table, quiescence, null-move pruning, killer moves, late-move
 reductions, tapered piece-square evaluation). No clock, no
 randomness: the same position always gets the same move.
 
+This entry keeps the previous entry's search and replaces the
+evaluation with the stronger design this project converged on:
+queen at 900/880 instead of 1000/980, that design's piece-square
+tables for pawns, knights, bishops, rooks and both king phases,
+and a bishop pair that tapers with game phase instead of a flat
+bonus. In local practice trials against the house gauntlet the
+change was worth about +220 Elo (mean 1,618 over three trials,
+against 1,396 for the previous entry).
+
 MIT licensed (see LICENSE).
 
 ## Run it
@@ -19,6 +28,16 @@ MIT licensed (see LICENSE).
 ```sh
 python3 main.py # serves the games the env at $MAKEFUN_ENV_URL offers
 ```
+
+## What main.py is
+
+main.py is the LZMA-packed form of the engine source (a
+`#coding:l1` stub that decompresses and execs it), packed with
+the competition kit's own `makefun compress` so the engine fits
+the 4,096-byte cap. The unpacked source is the file recorded in
+the entry's transcript bundle. Determinism is easy to spot-check:
+two fresh processes given the start position return the same
+first move.
 
 ---
 
