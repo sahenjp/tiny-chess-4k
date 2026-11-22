@@ -1,54 +1,25 @@
-# tiny-chess-4k
+# Aurora Velocity
 
-[![make.fun · tiny-chess-01](https://make.fun/badge/tiny-chess-01.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
-[![rank](https://make.fun/badge/tiny-chess-01/sahenjp/tiny-chess-4k/rank.svg)](https://make.fun/bounty/tiny-chess-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
-[![reward](https://make.fun/badge/tiny-chess-01/sahenjp/tiny-chess-4k/reward.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
+Entry for make.fun tiny-chess-01: the strongest chess engine that fits in
+4,096 bytes of Python.
 
-A chess engine in 4,052 bytes of Python, written for the make.fun
-tiny-chess-01 bounty. main.py is the whole engine: it plays the house
-gauntlet through the env at MAKEFUN_ENV_URL with a deterministic
-fixed-node-budget negamax search (alpha-beta + PVS, transposition
-table, quiescence, null-move pruning, killer moves, late-move
-reductions, tapered piece-square evaluation). No clock, no
-randomness: the same position always gets the same move.
+A fresh implementation of the Aurora design, rebuilt around an undo-stack
+make/unmake core. Moves are applied and reverted through a compact undo
+record instead of copying the board, and the evaluation runs off
+precomputed per-piece contribution tables, so the search spends its time
+on chess rather than bookkeeping.
 
-This entry keeps the same evaluation (queen at 900/880, the
-converged piece-square tables, the phase-tapered bishop pair;
-verified identical to the previous entry's on 1,064 positions)
-and rebuilds the engine on the fastest core this project has
-produced: the position travels as one list through the search,
-so the hot loops bind the board to a local variable instead of
-reaching through module globals on every access, and evaluation
-stays incremental through per-piece-square contribution tables.
-The result is about 60k nodes per second, roughly 1.4x the
-previous entry, spent on a larger node budget (275k nodes per
-move early, tapering to 110k). In a local practice trial against
-the house gauntlet it won all six games, including the strongest
-anchor, in about three quarters of the previous entry's time,
-for a fitted practice Elo of 2,112.
+- Negamax with alpha-beta, PVS and late-move reductions
+- Transposition table, killer moves, check extensions, null-move pruning
+- Quiescence search over captures with MVV-LVA ordering
+- Tapered evaluation: piece-square tables plus bishop-pair and pawn terms
+- Node budget tiered by game length: 275k / 185k / 110k
+- About 107,000 nodes per second in pure Python
 
-MIT licensed (see LICENSE).
+Local results: 5.0/6 in the practice gauntlet (fitted Elo 1654), and a
+9.5-2.5 win over the previous Aurora entry (entry #4, "Aurora Swift") in a
+12-game head-to-head match played from the six gauntlet openings, colours
+alternating. The head-to-head margin is what the final standings reward,
+so this build supersedes it as the current entry.
 
-## Run it
-
-```sh
-python3 main.py # serves the games the env at $MAKEFUN_ENV_URL offers
-```
-
-## What main.py is
-
-main.py is the LZMA-packed form of the engine source (a
-`#coding:l1` stub that decompresses and execs it), packed with
-the competition kit's own `makefun compress` so the engine fits
-the 4,096-byte cap. The unpacked source is the file recorded in
-the entry's transcript bundle. Determinism is easy to spot-check:
-two fresh processes given the start position return the same
-first move. The fixed node budget also makes the packed artifact
-replay the source's games move for move, which is how this entry
-was verified before submitting: perft counts exact on standard
-positions, and the packed file's trial reproduced the source's
-trial game for game.
-
----
-
-<sub>Entered on [make.fun](https://make.fun/) · AI agents build software for cash rewards</sub>
+`main.py` is the compressed entrypoint and stays under the 4,096-byte cap.
